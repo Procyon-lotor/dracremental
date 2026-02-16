@@ -1436,6 +1436,78 @@ body { padding-bottom: 50px; }
   background: #444;
 }
 
+/* Intro modal overlay */
+.intro-modal {
+  display: none;               /* shown via JS */
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 5000;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The dialog */
+.intro-modal-content {
+  width: min(720px, 92vw);
+  max-height: 80vh;
+  background: #1f1f3f;
+  border: 2px solid #3f3f7f;
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  color: #eee;
+  box-sizing: border-box;
+}
+
+/* Scrollable text area */
+.intro-modal-scroll {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  max-height: 52vh;            /* scroll within modal */
+  overflow-y: auto;
+  line-height: 1.55;
+}
+
+/* Make the button stick visually at bottom */
+#enterGameBtn {
+  margin-top: 12px;
+  width: 25%;
+  font-size: 16px;
+  padding: 10px 12px;
+}
+
+/* Help button (bottom-right) */
+#helpBtn {
+  position: fixed;
+  right: 0px;
+  bottom: 0px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.35);
+  background: rgba(20,20,40,0.9);
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 6000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+#helpBtn:hover {
+  border-color: rgba(255,255,255,0.65);
+}
+
+#helpBtn:active {
+  transform: translateY(1px);
+}
+
 </style>
 </head>
 
@@ -1496,6 +1568,8 @@ body { padding-bottom: 50px; }
     <button id="drawMaxKeysBtn" onclick="drawCardsWithKeys(keysOwned)">
       Draw X cards for X keys
     </button>
+
+    <div id="cardGotMessage" style="margin-top:10px; margin-bottom:30px; font-size:16px; color:#4caf50; display:none;"></div>
     
     <div id="cardGrid"></div>    
 
@@ -1799,42 +1873,63 @@ body { padding-bottom: 50px; }
         </div>
       </div>
   
-      <!-- STATS -->
-      <div id="statsContainer">
-        <h2>Stats</h2>
-        <div id="statsContent">
-          <div id="statsContent" style="text-align:left; line-height:1.55;">
-            <div><b>Total time played:</b> <span id="statTimeDHMS">0d 00:00:00</span> (<span id="statTimeSeconds">0</span> seconds)</div>
-            <div><b>Achievements completed:</b> <span id="statAchievements">0</span>/20 (coming later)</div>
-          
-            <div style="height:10px;"></div>
-          
-            <div><b>Total cards opened:</b> <span id="statCardsOpened">0</span></div>
-            <div><b>Cards unlocked:</b> <span id="statCardsUnlocked">0</span>/45</div>
-            <div><b>Total XP gained:</b> <span id="statTotalXPGained">0</span></div>
-            <div><b>Total card level-ups:</b> <span id="statCardLevelUps">0</span></div>
-            <div><b>Total spicy peppers gained:</b> <span id="statSpicyGained">0</span></div>
-          
-            <div style="height:10px;"></div>
-          
-            <div><b>Total dirt gained:</b> <span id="statDirtGained">0</span></div>
-            <div><b>Total gems gained:</b> <span id="statGemsGained">0</span></div>
-            <div><b>Total keys gained:</b> <span id="statKeysGained">0</span></div>
-            <div><b>Deepest depth reached:</b> <span id="statDeepestDepth">0</span></div>
-            <div><b>Times returned to surface:</b> <span id="statReturns">0</span></div>
-            <div><b>Total mining upgrades purchased:</b> <span id="statMiningUpgBought">0</span></div>
-          
-            <div style="height:10px;"></div>
-          
-            <div><b>Total damage dealt:</b> <span id="statDamageDealt">0</span></div>
-            <div><b>Last weapon used:</b> <span id="statLastWeapon">None</span></div>
-            <div><b>Total battle upgrades purchased:</b> <span id="statBattleUpgBought">0</span></div>
-          </div>          
-        </div>
-      </div>      
-  
+<div id="statsBlockWrap" style="position:relative; display:inline-block;">
+
+  <!-- STATS -->
+  <div id="statsContainer">
+    <h2>Stats</h2>
+    <div id="statsContent">
+      <div id="statsContent" style="text-align:left; line-height:1.55;">
+        <div><b>Total time played:</b> <span id="statTimeDHMS">0d 00:00:00</span> (<span id="statTimeSeconds">0</span> seconds)</div>
+        <div><b>Achievements completed:</b> <span id="statAchievements">0</span>/20</div>
+
+        <div style="height:10px;"></div>
+
+        <div><b>Total cards opened:</b> <span id="statCardsOpened">0</span></div>
+        <div><b>Cards unlocked:</b> <span id="statCardsUnlocked">0</span>/45</div>
+        <div><b>Total XP gained:</b> <span id="statTotalXPGained">0</span></div>
+        <div><b>Total card level-ups:</b> <span id="statCardLevelUps">0</span></div>
+        <div><b>Total spicy peppers gained:</b> <span id="statSpicyGained">0</span></div>
+
+        <div style="height:10px;"></div>
+
+        <div><b>Total dirt gained:</b> <span id="statDirtGained">0</span></div>
+        <div><b>Total gems gained:</b> <span id="statGemsGained">0</span></div>
+        <div><b>Total keys gained:</b> <span id="statKeysGained">0</span></div>
+        <div><b>Deepest depth reached:</b> <span id="statDeepestDepth">0</span></div>
+        <div><b>Times returned to surface:</b> <span id="statReturns">0</span></div>
+        <div><b>Total mining upgrades purchased:</b> <span id="statMiningUpgBought">0</span></div>
+
+        <div style="height:10px;"></div>
+
+        <div><b>Total damage dealt:</b> <span id="statDamageDealt">0</span></div>
+        <div><b>Last weapon used:</b> <span id="statLastWeapon">None</span></div>
+        <div><b>Total battle upgrades purchased:</b> <span id="statBattleUpgBought">0</span></div>
+      </div>
     </div>
-  </div>  
+  </div>
+
+  <!-- Discord link positioned relative to stats container -->
+  <a
+    href="https://discord.gg/E6SpGKvX"
+    target="_blank"
+    rel="noopener noreferrer"
+    style="
+      position:absolute;
+      text-align: center;
+      left:39%;
+      top:100%;
+      margin-top:24px;
+      font-size:16px;
+      color:#4aa3ff;
+      text-decoration:underline;
+      white-space:nowrap;
+    "
+  >
+    Join the Discord!
+  </a>
+
+</div>
 
     <div id="dragonModal" class="modal" onclick="closeDragonModal(event)">
       <div style="background:#1f1f3f; padding:12px; border-radius:12px; border:2px solid #3f3f7f;">
@@ -1942,6 +2037,37 @@ margin-bottom: 7px;
 Game Saved!
 </div>
 
+<!-- Intro Modal (shows once) -->
+<div id="introModal" class="intro-modal">
+  <div class="intro-modal-content">
+    <h2 style="margin-top:0;">Welcome to Dracremental!</h2>
+
+    <div id="introModalScroll" class="intro-modal-scroll">
+      <p>Thank you so much for checking out my game! What you're about to see is the culmination of weeks of dedication to create my first actual idle/incremental game. This is something I've always wanted to do, and it means a lot to me that it's finally a reality.</p>
+      <p>Once starting, you may find that the game is REALLY slow, since you can only draw a card every hour and can't do much else besides that. This is intentional, and I promise there are a lot more features to come! This was meant to be the kind of game where you don't need to be too active, and it wouldn't take up too much of a player's time.</p>
+      <p>I want to mention that there are some features in this game that do not update in the background, and even more that don't update with offline progress. I want to sincerely apologize for this—I really did try to incorporate a function that would allow everything to update with background/offline progress, but nothing seemed to work perfectly. To make idle progress work to its fullest extent, I suggest keeping the game open in a background window.</p>
+      <p>As previously mentioned, this is my first ever real game! That being said, it is more than likely that there are some bugs or inaccuracies that could occur while playing normally. If you catch anything, please let me know on Galaxy or through the Discord, and I will try my best to resolve the issue!</p>
+      <p>Alright, enough yapping—go ahead and start the game!</p>
+    </div>
+
+    <button id="enterGameBtn">Enter the Game!</button>
+  </div>
+</div>
+
+<!-- Help Button (bottom-right) -->
+<button id="helpBtn" aria-label="Help">?</button>
+
+<!-- Help Modal -->
+<div id="helpModal" class="intro-modal">
+  <div class="intro-modal-content">
+    <h2 id="helpModalTitle" style="margin-top:0;">Help</h2>
+
+    <div id="helpModalScroll" class="intro-modal-scroll"></div>
+
+    <button id="closeHelpBtn">I understand, thank you!</button>
+  </div>
+</div>
+
 <script>
 
 /* ---------------- PLAYER ---------------- */
@@ -1960,6 +2086,7 @@ let dragonLevel = 1;
 let dragonHP = 0;
 let dragonDamage = 0;
 let dragonsDefeated = 0;
+let cardsExpected = 0;
 
 // --- Tab unlocks + one-time glow ---
 let miningTabUnlocked = false;
@@ -1967,6 +2094,8 @@ let dragonTabUnlocked = false;
 
 let miningTabGlowDismissed = false; // once true, never glow again
 let dragonTabGlowDismissed = false;
+
+let hasSeenIntroModal = false;
 
 /* ---------------- CARDS ---------------- */
 const cards = [];
@@ -2230,6 +2359,8 @@ miningTabUnlocked,
 dragonTabUnlocked,
 miningTabGlowDismissed,
 dragonTabGlowDismissed,
+
+hasSeenIntroModal,
   };
 }
 
@@ -2326,6 +2457,8 @@ dragonTabUnlocked = !!s.dragonTabUnlocked;
 miningTabGlowDismissed = !!s.miningTabGlowDismissed;
 dragonTabGlowDismissed = !!s.dragonTabGlowDismissed;
 
+hasSeenIntroModal = !!s.hasSeenIntroModal;
+
 // reflect loaded name into the input + labels
 const nameInput = document.getElementById("playerNameInput");
 if (nameInput && playerName) nameInput.value = playerName;
@@ -2410,6 +2543,7 @@ function loadGame() {
   if (!raw) {
     applyAllSettings();
     if (!stats.firstPlayedMs) stats.firstPlayedMs = nowMs();
+    openIntroModalIfNeeded();
     return;
   }
 
@@ -2417,6 +2551,7 @@ function loadGame() {
   try { s = JSON.parse(raw); } catch { s = null; }
   if (!s) {
     applyAllSettings();
+    openIntroModalIfNeeded();
     return;
   }
 
@@ -2436,6 +2571,7 @@ function loadGame() {
   }
 
   applyAllSettings();
+  openIntroModalIfNeeded();
 }
 
 function hardReset() {
@@ -2445,6 +2581,7 @@ function hardReset() {
   if (!ok1 || !ok2) return;
 
   localStorage.removeItem(SAVE_KEY);
+
   location.reload();
 }
 
@@ -2679,9 +2816,180 @@ updateModal();
 updateTabUnlocksUI();
 }
 
+function openIntroModalIfNeeded() {
+  const modal = document.getElementById("introModal");
+  const btn = document.getElementById("enterGameBtn");
+  if (!modal || !btn) return;
+
+  // Show only if not seen yet
+  if (hasSeenIntroModal) {
+    modal.style.display = "none";
+    return;
+  }
+
+  modal.style.display = "flex";
+
+  // Ensure the only close method is the button
+  btn.onclick = () => {
+    hasSeenIntroModal = true;
+    modal.style.display = "none";
+    saveGame(false); // persist "seen" state
+  };
+}
+
+document.addEventListener("keydown", (e) => {
+  const modal = document.getElementById("introModal");
+  if (modal && modal.style.display === "flex" && e.key === "Escape") {
+    e.preventDefault();
+  }
+}, true);
+
+function getHelpContentForTab(tabName) {
+  // Returns: { title: string, paragraphs: string[] }
+  switch (tabName) {
+    case "cards":
+      return {
+        title: "Help — Cards",
+        paragraphs: [
+          "You can draw cards by clicking the \"Select 1 Cards\" button at the top. This will randomly give you one of 45 possible cards to collect, weighted by rarity.",
+          "There are five rarities of cards, ranging from one-star to five-star. Roughly, each rarity is 4x less likely to be obtained than the previous, with some exceptions at higher rarities.",
+          "Each card passively generates XP over time, with higher rarity cards generating more XP. Some higher-rarity cards are nerfed until a certain player level and will increase their XP/sec as you level up.",
+          "You can also level up each card individually by collecting duplicates of it. Once you have enough duplicates, you can level the card up to increase its XP production. Each level-up provides a certain amount of Spicy Peppers.",
+          "You can click on a card to view its modal, which displays a lot of useful information about the card.",
+          "<b><span style='color:#00efef;'>Note: Mining will unlock at Player Level 15</span></b>" 
+        ]
+      };
+
+    case "mining":
+      return {
+        title: "Help — Mining",
+        paragraphs: [
+          "Congratulations on unlocking Mining! Here, you can collect gems, which provide a multiplier to your total XP gain, thus helping you increase your level even further.",
+          "Use the arrow keys to mine. With the exception of the top row, mining cells takes time based on the depth of the cell, and rarer gems take longer to mine as well. If you leave a cell while the timer is running to go mine another cell, the timer on the cell you were mining will be preserved.",
+          "In general, each gem is 4x rarer then the previous. The way this works is that each cell has a base chance of being a ruby (+0.05% per depth), and each gem has a 25% chance of being promoted into the next gem. Also, it is guaranteed that at least one gem will spawn in depths 6-10, because what fun would it be if you unlocked mining and saw a grid full of dirt? :3",
+          "You can use dirt to buy upgrades. The first two upgrades can be bought infinitely, and the last two can be bought 15 times each. (Tip: Since the first rwo mines instantly, this is a great way to earn dirt early on!)",
+          "Your gem product is calculated by adding one to all of your gem counts, then multiplying them together. This product is then plugged into the log base to get your final XP multiplier.",
+          "Collecting a key allows you to draw another card, without having to wait for the timer. Each cell has a 0.5% chance of spawking a key, and this can be upgraded all the way to 2.0%!",
+          "The Teleport button will teleport you to a random mined square on the depth you choose. You cannot teleport to a depth that you have not yet reached!",
+          "The Return to Surface button is useful because it allows you to get more dirt (and gems that appear at shallower depths) after all of the easily mined cells are gone. I recommending using it when mining progress seems really slow, and there aren't any nearby gems.",
+          "When your gem product reaches 100,000 (1e5), you will unlock the autominer who automatically mines cells for you! You can set his starting depth with the button below. Once active, the autominer will start mining cells from left to right until he reaches your max depth or the current cell that you're on. Leaving the autominer on at relatively shallow depths can be a great way to passively earn extra dirt.",
+          "<b><span style='color:#00efef;'>Note: Dragon will unlock at 1000 Spicy Peppers</span></b>"
+        ]
+      };
+
+    case "dragon":
+      return {
+        title: "Help — Dragon",
+        paragraphs: [
+          "Congratulations on unlocking Dragon! Seriously, thank you for sticking around this long, it means so much to me. Here, you can fight dragons for a variety of different bonuses!",
+          "If you're looking at this help modal right after you unlocked the tab, the first thing you should do is spend your hard-earned spicy peppers on battle upgrades. I recommend spending all of them on the first two upgrades at first, with a slight favor toward the second one.",
+          "Before you fight the dragon, you must select a weapon. You can hover over the buttons to see their effects—I tried to make all of the weapons equally powerful, but there might inevitably be some that are better than others. Feel free to experiment and find your favorite!",
+          "<h3>Controls:</h3>",
+          "<ul style='margin:8px 0 0 0; padding:0; line-height:1.5; list-style-position:inside;'>" +
+          "<li>Left Arrow—Move Left" +
+          "<li>Right Arrow—Move Right" +
+          "<li>Up Arrow—Jump" +
+          "<li>Down Arrow—Drop through a platform (this was so hard to code lol)" +
+          "<li>F key—Fire projectile (in the direction of your cursor)" +
+          "</ul>",
+          "When you defeat a dragon, the next one will spawn with twice the HP and damage of the previous dragon. Based on the total number of dragons you have defeated, you will earn the following rewards:",
+          "<ul style='margin:8px 0 0 0; padding:0; line-height:1.5; list-style-position:inside;'>" +
+          "<li>Multiply your XP gain (this formula is actually an exponent, raising your total XP/sec ^+0.01 per dragon, but it's displayed as a multiplier that increases as your base XP/sec increases.)" +
+          "<li>Claim multiple cards at once (1.1^(dragons defeated))" +
+          "<li>Multiply gem gain (1.15^(dragons defeated))" +
+          "</ul>",
+          "If you're experiencing lag, try turning on the \"Optimize dragon fighting\" setting, it may help a little!",
+        ]
+      };
+
+    case "achievements":
+      return {
+        title: "Help — Achievements",
+        paragraphs: [
+          "Achievements, as in most games, are a good indicator of the progress you've made. Completing an achievement will cause a pop-up to appear at the top of the screen, and clicking the \"Claim\" button will claim the award.",
+          "Completing all achievements should generally be considered completing the game, but there is likely more progress that can be made after that point! (Note: It's very likely that these achievements will not be completed in order))",
+          "Feel free to send in the Discord if you've completed a certain achievement! I was originally going to have a chat function that displayed when players completed achievements, but I decided to scrap it lol. Also, if you can think of better names for any of the achievements, I'd love to hear them!"
+        ]
+      };
+
+    case "settings":
+      return {
+        title: "Help — Settings/Stats",
+        paragraphs: [
+          "Here, you can change a few settings that I thought might be useful, as well as see a few interesting statistics! Let me know if you want me to add any others!",
+        ]
+      };
+
+    default:
+      return {
+        title: "Help",
+        paragraphs: [
+          "Placeholder: General help text.",
+          "Placeholder: This help page changes depending on the tab you are on."
+        ]
+      };
+  }
+}
+
+function openHelpModalForCurrentTab() {
+  const helpModal = document.getElementById("helpModal");
+  const titleEl = document.getElementById("helpModalTitle");
+  const scrollEl = document.getElementById("helpModalScroll");
+  const closeBtn = document.getElementById("closeHelpBtn");
+
+  if (!helpModal || !titleEl || !scrollEl || !closeBtn) return;
+
+  // Ensure we always have a current tab
+  const tab = (window.currentTab || "cards");
+
+  // Build content
+  const content = getHelpContentForTab(tab);
+  titleEl.textContent = content.title;
+
+  // Fill paragraphs
+  scrollEl.innerHTML = "";
+  content.paragraphs.forEach(txt => {
+    const p = document.createElement("p");
+    p.innerHTML = txt;
+    scrollEl.appendChild(p);
+  });
+
+  // Show modal
+  helpModal.style.display = "flex";
+
+  // Only way to close = the button
+  closeBtn.onclick = () => {
+    helpModal.style.display = "none";
+  };
+}
+
+function initHelpUI() {
+  const helpBtn = document.getElementById("helpBtn");
+  const helpModal = document.getElementById("helpModal");
+  if (!helpBtn || !helpModal) return;
+
+  helpBtn.addEventListener("click", () => {
+    openHelpModalForCurrentTab();
+  });
+
+  // Prevent click-outside closing (we're not adding overlay click handlers,
+  // but this also blocks any accidental propagation)
+  helpModal.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // Optional: block ESC from closing help if you later add global modal close logic
+  document.addEventListener("keydown", (e) => {
+    if (helpModal.style.display === "flex" && e.key === "Escape") {
+      e.preventDefault();
+    }
+  }, true);
+}
+
 /* ---------------- GAME LOGIC ---------------- */
 
 function showTab(tabName) {
+  window.currentTab = tabName;
     // Prevent entering locked tabs (extra safety, even though buttons are disabled)
     if (tabName === "mining" && !miningTabUnlocked) return;
   if (tabName === "dragon" && !dragonTabUnlocked) return;
@@ -2722,7 +3030,11 @@ function showTab(tabName) {
 
 function pullCard() {
   if (cardCooldownRemaining > 0) return;
+
   const pulls = Math.max(1, getCardsPerClickExpected());
+
+  let firstCardId = null;
+  let firstWasNew = false;
 
   for (let i = 0; i < pulls; i++) {
     const totalWeight = cards.reduce((s, c) => s + c.weight, 0);
@@ -2731,13 +3043,25 @@ function pullCard() {
     for (const card of cards) {
       roll -= card.weight;
       if (roll <= 0) {
-        obtainCard(card);
+        const wasNew = obtainCard(card);
+
+        if (firstCardId === null) {
+          firstCardId = card.id;
+          firstWasNew = wasNew;
+        }
         break;
       }
     }
   }
+
+  // Show the "You got..." message
+  if (firstCardId !== null) {
+    showCardGotMessage(firstCardId, pulls, firstWasNew);
+  }
+
   cardCooldownRemaining = getCardCooldownDuration();
   lastCardCooldownTick = Date.now();
+  updateCardCooldownUI(); // nice immediate update
 }
 
 function startCardCooldownLoop() {
@@ -2764,22 +3088,31 @@ function drawCardsWithKeys(n) {
   // Spend keys
   keysOwned -= n;
 
-  // Each key = one "draw" (same as clicking Select Card once)
+  let firstCardId = null;
+  let firstWasNew = false;
+
   for (let i = 0; i < n; i++) {
-    // Directly do one draw (not the multi-draw per click)
     const totalWeight = cards.reduce((s, c) => s + c.weight, 0);
     let roll = Math.random() * totalWeight;
 
     for (const card of cards) {
       roll -= card.weight;
       if (roll <= 0) {
-        obtainCard(card);
+        const wasNew = obtainCard(card);
+
+        if (firstCardId === null) {
+          firstCardId = card.id;
+          firstWasNew = wasNew;
+        }
         break;
       }
     }
   }
 
-  // Update UI (keys display + buttons)
+  if (firstCardId !== null) {
+    showCardGotMessage(firstCardId, n, firstWasNew);
+  }
+
   updatePlayerUI();
   updateKeyDrawButtons();
 }
@@ -2790,7 +3123,9 @@ function getCardCooldownDuration() {
 }
 
 function obtainCard(card) {
-  if (!ownedCards[card.id]) {
+  const wasNew = !ownedCards[card.id];
+
+  if (wasNew) {
     ownedCards[card.id] = {
       ...card,
       level: 1,
@@ -2800,16 +3135,16 @@ function obtainCard(card) {
     stats.cardsUnlocked += 1;
   }
 
-  stats.highestCardStars = Math.max(
-    stats.highestCardStars,
-    card.stars
-  );
+  stats.highestCardStars = Math.max(stats.highestCardStars, card.stars);
 
   ownedCards[card.id].copies++;
   stats.totalCardsOpened += 1;
+
   renderGallery();
   updateModal();
   saveGame(false);
+
+  return wasNew;
 }
 
 function formatCooldownTime(seconds) {
@@ -2834,15 +3169,16 @@ function formatCooldownTime(seconds) {
 }
 
 function updateCardCooldownUI() {
+  cardsExpected = getCardsPerClickExpected();
   const btn = document.getElementById("selectCardBtn");
   if (!btn) return;
 
   if (cardCooldownRemaining > 0) {
     btn.disabled = true;
-    btn.textContent = `Select 1 Card (${formatCooldownTime(cardCooldownRemaining)})`;
+    btn.textContent = `Select ${cardsExpected} Cards (${formatCooldownTime(cardCooldownRemaining)})`;
   } else {
     btn.disabled = false;
-    btn.textContent = "Select 1 Card";
+    btn.textContent = `Select ${cardsExpected} Cards`;
   }
 }
 
@@ -3071,6 +3407,7 @@ updateDragonTabLabels();
 updateDragonRewardsUI();
 updateKeyDrawButtons();
 updateTabUnlocksUI();
+updateCardCooldownUI();
 }
 
 function updateKeyDrawButtons() {
@@ -3083,6 +3420,35 @@ function updateKeyDrawButtons() {
     btnMax.disabled = keysOwned < 1;
     btnMax.textContent = `Draw ${keysOwned} cards for ${keysOwned} keys`;
   }
+}
+
+let cardGotMsgTimer = null;
+
+function showCardGotMessage(firstCardId, totalCardsDrawn, firstWasNew) {
+  const el = document.getElementById("cardGotMessage");
+  if (!el) return;
+
+  // Build the main text
+  let msg = "";
+  if (totalCardsDrawn <= 1) {
+    msg = `You got Card ${firstCardId}!`;
+  } else {
+    msg = `You got Card ${firstCardId}! (and ${totalCardsDrawn - 1} others)`;
+  }
+
+  // Add "new card" highlight if the FIRST card was new
+  const newBadge = firstWasNew
+    ? ` <span style="color:#efef00; font-weight:bold;">This is a new card!</span>`
+    : "";
+
+  el.innerHTML = msg + newBadge;
+  el.style.display = "block";
+
+  // Optional: auto-hide after a bit (remove this if you want it to persist)
+  if (cardGotMsgTimer) clearTimeout(cardGotMsgTimer);
+  cardGotMsgTimer = setTimeout(() => {
+    el.style.display = "none";
+  }, 5000);
 }
 
 /* ---------------- UI ---------------- */
@@ -3755,6 +4121,11 @@ function getDragonXpExponentBonus() {
   return 1 + 0.01 * Math.pow(dragonsDefeated, 0.85);
 }
 
+function getDragonGemMultiplier() {
+  // 1.15^[dragons defeated]
+  return Math.pow(1.15, Math.max(0, dragonsDefeated || 0));
+}
+
 // Applies: New XP Gain = (Old XP Gain)^(1 + 0.01*(X^0.85))
 function applyDragonXpBonus(amount) {
   const exp = getDragonXpExponentBonus();
@@ -3784,12 +4155,16 @@ function updateDragonRewardsUI() {
   const xpMult = getDisplayedXpMultiplier();
   const cardsExpected = getCardsPerClickExpected();
 
+  const gemMult = getDragonGemMultiplier();
+  const gemMultDisplay = Math.max(1, Math.floor(gemMult));
+
   el.innerHTML = `
     <h3>You have defeated <b>${dragonsDefeated}</b> dragons, which:</h3><br>
     Multiplies your XP gain by <b>x${xpMult.toFixed(2)}</b><br>
     Allows you to claim <b>${cardsExpected}</b> cards at once<br>
-    Multiplies gem gain by <b>x?</b> (coming later)
+    Multiplies gem gain by <b>x${formatNumber(gemMultDisplay)}</b>
   `;
+  updateCardCooldownUI();
 }
 
 function debugDragonXpMath(oldGain, defeated) {
@@ -5434,8 +5809,11 @@ function autominerProcessCurrentCell() {
     // claim ore / dirt
     const oreIndex = getMiningCell(ad, ac);
     if (oreIndex !== null && oreIndex !== undefined) {
-      miningClaimedCounts[oreIndex] += 1;
-      stats.totalGemsGained += 1;
+      const gemMult = getDragonGemMultiplier();
+const gain = Math.max(1, Math.floor(gemMult));
+
+miningClaimedCounts[oreIndex] += gain;
+stats.totalGemsGained += gain;
       setMiningCell(ad, ac, null);
       setMiningMined(ad, ac, true);
     } else {
@@ -5828,8 +6206,11 @@ function tryClaimOreAtPlayer() {
   if (oreIndex === null || oreIndex === undefined) return;
 
   // Record gem
-  miningClaimedCounts[oreIndex] += 1;
-  stats.totalGemsGained += 1;
+  const gemMult = getDragonGemMultiplier();
+const gain = Math.max(1, Math.floor(gemMult)); // integer gems
+
+miningClaimedCounts[oreIndex] += gain;
+stats.totalGemsGained += gain;
 
   // Remove ore from the grid
   setMiningCell(miningDepth, miningPlayerCol, null);
@@ -6562,6 +6943,7 @@ updateReturnSurfaceUI();
 
 // important: settings UI only exists after DOM is built
 initSettingsUI();
+initHelpUI();
 
 renderMiningAll();
 startAutosaveSystem();
