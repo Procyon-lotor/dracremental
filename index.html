@@ -1791,7 +1791,7 @@ body { padding-bottom: 50px; }
   </div>  
     
   <div id="settingsTab" class="tabContent" style="margin-top:80px;">
-    <div id="settingsLayout">
+    <div id="settingsLayout" style="display:flex; align-items:flex-start; justify-content:center; gap:22px; flex-wrap:wrap;">
   
       <!-- SETTINGS (single container) -->
       <div id="settingsContainer">
@@ -1873,52 +1873,50 @@ body { padding-bottom: 50px; }
         </div>
       </div>
   
+<!-- STATS + Discord link -->
 <div id="statsBlockWrap" style="position:relative; display:inline-block;">
 
-  <!-- STATS -->
   <div id="statsContainer">
     <h2>Stats</h2>
-    <div id="statsContent">
-      <div id="statsContent" style="text-align:left; line-height:1.55;">
-        <div><b>Total time played:</b> <span id="statTimeDHMS">0d 00:00:00</span> (<span id="statTimeSeconds">0</span> seconds)</div>
-        <div><b>Achievements completed:</b> <span id="statAchievements">0</span>/20</div>
+    <div id="statsContent" style="text-align:left; line-height:1.55;">
+      <div><b>Total time played:</b> <span id="statTimeDHMS">0d 00:00:00</span> (<span id="statTimeSeconds">0</span> seconds)</div>
+      <div><b>Achievements completed:</b> <span id="statAchievements">0</span>/20</div>
 
-        <div style="height:10px;"></div>
+      <div style="height:10px;"></div>
 
-        <div><b>Total cards opened:</b> <span id="statCardsOpened">0</span></div>
-        <div><b>Cards unlocked:</b> <span id="statCardsUnlocked">0</span>/45</div>
-        <div><b>Total XP gained:</b> <span id="statTotalXPGained">0</span></div>
-        <div><b>Total card level-ups:</b> <span id="statCardLevelUps">0</span></div>
-        <div><b>Total spicy peppers gained:</b> <span id="statSpicyGained">0</span></div>
+      <div><b>Total cards opened:</b> <span id="statCardsOpened">0</span></div>
+      <div><b>Cards unlocked:</b> <span id="statCardsUnlocked">0</span>/45</div>
+      <div><b>Total XP gained:</b> <span id="statTotalXPGained">0</span></div>
+      <div><b>Total card level-ups:</b> <span id="statCardLevelUps">0</span></div>
+      <div><b>Total spicy peppers gained:</b> <span id="statSpicyGained">0</span></div>
 
-        <div style="height:10px;"></div>
+      <div style="height:10px;"></div>
 
-        <div><b>Total dirt gained:</b> <span id="statDirtGained">0</span></div>
-        <div><b>Total gems gained:</b> <span id="statGemsGained">0</span></div>
-        <div><b>Total keys gained:</b> <span id="statKeysGained">0</span></div>
-        <div><b>Deepest depth reached:</b> <span id="statDeepestDepth">0</span></div>
-        <div><b>Times returned to surface:</b> <span id="statReturns">0</span></div>
-        <div><b>Total mining upgrades purchased:</b> <span id="statMiningUpgBought">0</span></div>
+      <div><b>Total dirt gained:</b> <span id="statDirtGained">0</span></div>
+      <div><b>Total gems gained:</b> <span id="statGemsGained">0</span></div>
+      <div><b>Total keys gained:</b> <span id="statKeysGained">0</span></div>
+      <div><b>Deepest depth reached:</b> <span id="statDeepestDepth">0</span></div>
+      <div><b>Times returned to surface:</b> <span id="statReturns">0</span></div>
+      <div><b>Total mining upgrades purchased:</b> <span id="statMiningUpgBought">0</span></div>
 
-        <div style="height:10px;"></div>
+      <div style="height:10px;"></div>
 
-        <div><b>Total damage dealt:</b> <span id="statDamageDealt">0</span></div>
-        <div><b>Last weapon used:</b> <span id="statLastWeapon">None</span></div>
-        <div><b>Total battle upgrades purchased:</b> <span id="statBattleUpgBought">0</span></div>
-      </div>
+      <div><b>Total damage dealt:</b> <span id="statDamageDealt">0</span></div>
+      <div><b>Last weapon used:</b> <span id="statLastWeapon">None</span></div>
+      <div><b>Total battle upgrades purchased:</b> <span id="statBattleUpgBought">0</span></div>
     </div>
   </div>
 
-  <!-- Discord link positioned relative to stats container -->
+  <!-- Discord link centered below the stats container -->
   <a
     href="https://discord.gg/E6SpGKvX"
     target="_blank"
     rel="noopener noreferrer"
     style="
       position:absolute;
-      text-align: center;
-      left:39%;
       top:100%;
+      left:50%;
+      transform:translateX(-50%);
       margin-top:24px;
       font-size:16px;
       color:#4aa3ff;
@@ -1929,6 +1927,8 @@ body { padding-bottom: 50px; }
     Join the Discord!
   </a>
 
+</div>
+</div>
 </div>
 
     <div id="dragonModal" class="modal" onclick="closeDragonModal(event)">
