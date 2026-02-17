@@ -1561,6 +1561,9 @@ body { padding-bottom: 50px; }
     <button id="selectCardBtn" onclick="pullCard()">Select 1 Card</button>
     <div id="cardCooldownText" style="font-size:12px;color:#aaa;margin-top:-12px;">
       You can claim cards faster at higher player levels!
+
+      <div id="storedDrawsText" style="font-size:16px;color:#eee;margin-top:16px;"></div>
+      <div id="storedDrawsCapText" style="font-size:12px;color:#aaa;margin-top:2px;"></div>
     </div>    
 
     <button id="draw1KeyBtn" onclick="drawCardsWithKeys(1)">
@@ -2179,6 +2182,18 @@ let autosaveCountdownTimer = null;
 let nextAutosaveAt = null;
 
 let cardCooldownRemaining = 0; // seconds remaining
+// --- Stored card draws ---
+let storedCardDraws = 1; // start with 1 at level 1
+
+function maxStoredCardDraws() {
+  return Math.max(1, Math.floor(Math.sqrt(playerLevel)));
+}
+
+function nextSquareLevelForIncrease() {
+  const max = maxStoredCardDraws();
+  return (max + 1) * (max + 1);
+}
+
 let lastCardCooldownTick = performance.now();
 
 let stats = {
@@ -2363,6 +2378,7 @@ miningTabGlowDismissed,
 dragonTabGlowDismissed,
 
 hasSeenIntroModal,
+storedCardDraws,
   };
 }
 
@@ -2460,6 +2476,7 @@ miningTabGlowDismissed = !!s.miningTabGlowDismissed;
 dragonTabGlowDismissed = !!s.dragonTabGlowDismissed;
 
 hasSeenIntroModal = !!s.hasSeenIntroModal;
+storedCardDraws = s.storedCardDraws ?? storedCardDraws;
 
 // reflect loaded name into the input + labels
 const nameInput = document.getElementById("playerNameInput");
@@ -2470,6 +2487,8 @@ updateDragonTabLabels();
 applyBattleUpgradesToStats();
 recalcDragonStats();        // important because unscaling changes dragonHP/dragonDamage
 renderBattleUpgrades();
+
+storedCardDraws = Math.min(storedCardDraws, maxStoredCardDraws());
 
   // if autominer loaded active, restart timer safely
   if (autominerUnlocked && autominerActive) startAutominer();
@@ -2546,6 +2565,10 @@ function loadGame() {
     applyAllSettings();
     if (!stats.firstPlayedMs) stats.firstPlayedMs = nowMs();
     openIntroModalIfNeeded();
+    storedCardDraws = 1;
+cardCooldownRemaining = 0;
+lastCardCooldownTick = Date.now();
+updateCardCooldownUI();
     return;
   }
 
@@ -2857,6 +2880,7 @@ function getHelpContentForTab(tabName) {
           "There are five rarities of cards, ranging from one-star to five-star. Roughly, each rarity is 4x less likely to be obtained than the previous, with some exceptions at higher rarities.",
           "Each card passively generates XP over time, with higher rarity cards generating more XP. Some higher-rarity cards are nerfed until a certain player level and will increase their XP/sec as you level up.",
           "You can also level up each card individually by collecting duplicates of it. Once you have enough duplicates, you can level the card up to increase its XP production. Each level-up provides a certain amount of Spicy Peppers.",
+          "Card draws are awarded on an interval that decreases as your player level goes up. This interval starts out pretty slow, but it gets slightly faster each time your player level goes up! Also, you can store a few card draws and then claim them all when you return, so don't worry about missing draws while you're away :3",
           "You can click on a card to view its modal, which displays a lot of useful information about the card.",
           "<b><span style='color:#00efef;'>Note: Mining will unlock at Player Level 15</span></b>" 
         ]
@@ -3031,7 +3055,8 @@ function showTab(tabName) {
 }
 
 function pullCard() {
-  if (cardCooldownRemaining > 0) return;
+  if (storedCardDraws <= 0) return;
+  storedCardDraws--;
 
   const pulls = Math.max(1, getCardsPerClickExpected());
 
@@ -3061,20 +3086,54 @@ function pullCard() {
     showCardGotMessage(firstCardId, pulls, firstWasNew);
   }
 
+  // If we spent a draw and we're not maxed, make sure the timer is running.
+if (storedCardDraws < maxStoredCardDraws() && cardCooldownRemaining <= 0) {
   cardCooldownRemaining = getCardCooldownDuration();
   lastCardCooldownTick = Date.now();
-  updateCardCooldownUI(); // nice immediate update
+}
+
+saveGame(false);
+updateCardCooldownUI();
 }
 
 function startCardCooldownLoop() {
   setInterval(() => {
-    if (cardCooldownRemaining <= 0) return;
+    const max = maxStoredCardDraws();
+
+    // If already maxed, stop the timer at 0 and just keep UI updated.
+    if (storedCardDraws >= max) {
+      cardCooldownRemaining = 0;
+      updateCardCooldownUI();
+      return;
+    }
+
+    if (cardCooldownRemaining <= 0) {
+      // If we're not maxed but timer is 0, start it.
+      cardCooldownRemaining = getCardCooldownDuration();
+      lastCardCooldownTick = Date.now();
+      updateCardCooldownUI();
+      return;
+    }
 
     const now = Date.now();
     const deltaSec = (now - lastCardCooldownTick) / 1000;
     lastCardCooldownTick = now;
 
     cardCooldownRemaining = Math.max(0, cardCooldownRemaining - deltaSec);
+
+    // When it hits 0, award a stored draw (if not maxed), then start next timer if still not maxed.
+    if (cardCooldownRemaining <= 0) {
+      storedCardDraws = Math.min(max, storedCardDraws + 1);
+
+      if (storedCardDraws < max) {
+        cardCooldownRemaining = getCardCooldownDuration();
+        lastCardCooldownTick = Date.now();
+      } else {
+        cardCooldownRemaining = 0;
+      }
+
+      saveGame(false);
+    }
 
     updateCardCooldownUI();
   }, 100);
@@ -3172,15 +3231,38 @@ function formatCooldownTime(seconds) {
 
 function updateCardCooldownUI() {
   cardsExpected = getCardsPerClickExpected();
-  const btn = document.getElementById("selectCardBtn");
-  if (!btn) return;
 
-  if (cardCooldownRemaining > 0) {
-    btn.disabled = true;
-    btn.textContent = `Select ${cardsExpected} Cards (${formatCooldownTime(cardCooldownRemaining)})`;
-  } else {
-    btn.disabled = false;
+  const btn = document.getElementById("selectCardBtn");
+  const storedEl = document.getElementById("storedDrawsText");
+  const capEl = document.getElementById("storedDrawsCapText");
+
+  const max = maxStoredCardDraws();
+
+  // Button: enabled if you have at least 1 stored draw
+  if (btn) {
+    btn.disabled = (storedCardDraws <= 0);
     btn.textContent = `Select ${cardsExpected} Cards`;
+  }
+
+// Line 1: current stored + next draw timer/maxed out
+if (storedEl) {
+  if (storedCardDraws >= max) {
+    storedEl.innerHTML =
+      `You currently have <b>${storedCardDraws}</b> card draws stored. ` +
+      `Next card draw in <b>(maxed out)</b>`;
+  } else {
+    const t = formatCooldownTime(cardCooldownRemaining);
+    storedEl.innerHTML =
+      `You currently have <b>${storedCardDraws}</b> card draws stored. ` +
+      `Next card draw in <b>${t}</b>`;
+  }
+}
+
+  // Line 2: cap + next level bump info
+  if (capEl) {
+    const nextLvl = nextSquareLevelForIncrease();
+    capEl.textContent =
+      `You can store up to ${max} card draws right now. You'll gain +1 max card draw stored at Level ${nextLvl}.`;
   }
 }
 
@@ -3314,6 +3396,11 @@ function gainXP(amount) {
   }
     nextPlayerLevelXP = Math.floor(nextPlayerLevelXP * 1.2);
   }
+
+  if (storedCardDraws < maxStoredCardDraws() && cardCooldownRemaining <= 0) {
+  cardCooldownRemaining = getCardCooldownDuration();
+  lastCardCooldownTick = Date.now();
+}
 
   updatePlayerUI();
 }
