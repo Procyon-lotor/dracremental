@@ -1652,7 +1652,7 @@ body { padding-bottom: 50px; }
           line-height: 1.4;
           margin-left: 36px;
         ">
-          Return to Surface resets mined cells and your max depth reached, turns the autominer inactive, and returns you to the bubble row. You can do this once every 24 hours.
+          Return to Surface resets mined cells and your max depth reached, turns the autominer inactive, and returns you to the bubble row. You can do this once every 8 hours.
         </div>
       
       </div>      
@@ -5894,7 +5894,7 @@ function returnToSurface() {
   if (Date.now() < returnSurfaceAvailableAt) return;
 
   // ✅ set cooldown FIRST (so any render after this shows timer)
-  returnSurfaceAvailableAt = Date.now() + 24 * 60 * 60 * 1000;
+  returnSurfaceAvailableAt = Date.now() + 8 * 60 * 60 * 1000;
 
   // ✅ update button immediately
   updateReturnSurfaceUI();
