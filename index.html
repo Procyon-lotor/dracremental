@@ -5407,7 +5407,7 @@ const miningUpgrades = [
     name: "Sharper Drill",
     desc: "Increase mining speed",
     max: Infinity,
-    effect: x => Math.pow(1.4, x),
+    effect: x => Math.pow(1.35, x),
     cost: x => Math.floor(100 * Math.pow(1.2, x)),
     format: v => `${formatNumber(v.toFixed(2))}× speed`
   },
