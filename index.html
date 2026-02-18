@@ -3513,9 +3513,28 @@ function updateKeyDrawButtons() {
 
 let cardGotMsgTimer = null;
 
+function rarityColorForStars(stars) {
+  switch (Number(stars)) {
+    case 1: return "#aaaaaa";
+    case 2: return "#4caf50";
+    case 3: return "#2196f3";
+    case 4: return "#9c27b0";
+    case 5: return "#ff9800";
+    default: return "#eee";
+  }
+}
+
 function showCardGotMessage(firstCardId, totalCardsDrawn, firstWasNew) {
   const el = document.getElementById("cardGotMessage");
   if (!el) return;
+
+  // Find stars for this card id (fallback to ownedCards if needed)
+  const cardDef = cards.find(c => c.id === firstCardId);
+  const stars = cardDef?.stars ?? ownedCards[firstCardId]?.stars ?? 1;
+
+  const rarityColor = rarityColorForStars(stars);
+  const rarityText =
+    ` <span style="color:${rarityColor}; font-weight:bold;">(${stars}-Star rarity)</span>`;
 
   // Build the main text
   let msg = "";
@@ -3530,10 +3549,9 @@ function showCardGotMessage(firstCardId, totalCardsDrawn, firstWasNew) {
     ? ` <span style="color:#efef00; font-weight:bold;">This is a new card!</span>`
     : "";
 
-  el.innerHTML = msg + newBadge;
+  el.innerHTML = msg + rarityText + newBadge;
   el.style.display = "block";
 
-  // Optional: auto-hide after a bit (remove this if you want it to persist)
   if (cardGotMsgTimer) clearTimeout(cardGotMsgTimer);
   cardGotMsgTimer = setTimeout(() => {
     el.style.display = "none";
