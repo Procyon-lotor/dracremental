@@ -2186,12 +2186,19 @@ let cardCooldownRemaining = 0; // seconds remaining
 let storedCardDraws = 1; // start with 1 at level 1
 
 function maxStoredCardDraws() {
-  return Math.max(1, Math.floor(Math.pow(playerLevel, 0.75)));
+  return maxStoredCardDrawsAtLevel(playerLevel);
 }
 
-function nextSquareLevelForIncrease() {
-  const max = maxStoredCardDraws();
-  return (max + 1) * (max + 1);
+function nextLevelForStoredDrawIncrease() {
+  const cur = maxStoredCardDraws();
+  let lvl = playerLevel + 1;
+
+  while (maxStoredCardDrawsAtLevel(lvl) === cur) lvl++;
+  return lvl;
+}
+
+function maxStoredCardDrawsAtLevel(level) {
+  return Math.max(1, Math.floor(Math.pow(level, 0.75)));
 }
 
 let lastCardCooldownTick = performance.now();
@@ -3260,9 +3267,9 @@ if (storedEl) {
 
   // Line 2: cap + next level bump info
   if (capEl) {
-    const nextLvl = nextSquareLevelForIncrease();
-    capEl.textContent =
-      `You can store up to ${max} card draws right now. You'll gain +1 max card draw stored at Level ${nextLvl}.`;
+  const nextLvl = nextLevelForStoredDrawIncrease();
+  capEl.textContent =
+    `You can store up to ${max} card draws right now. You'll gain +1 max card draw stored at Level ${nextLvl}.`;
   }
 }
 
