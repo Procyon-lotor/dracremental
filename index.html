@@ -2186,7 +2186,7 @@ let cardCooldownRemaining = 0; // seconds remaining
 let storedCardDraws = 1; // start with 1 at level 1
 
 function maxStoredCardDraws() {
-  return Math.max(1, Math.floor(Math.sqrt(playerLevel)));
+  return Math.max(1, Math.floor(Math.pow(playerLevel, 0.75)));
 }
 
 function nextSquareLevelForIncrease() {
