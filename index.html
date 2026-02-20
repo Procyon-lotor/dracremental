@@ -2928,7 +2928,7 @@ function getHelpContentForTab(tabName) {
           "When you defeat a dragon, the next one will spawn with twice the HP and damage of the previous dragon. Based on the total number of dragons you have defeated, you will earn the following rewards:",
           "<ul style='margin:8px 0 0 0; padding:0; line-height:1.5; list-style-position:inside;'>" +
           "<li>Multiply your XP gain (this formula is actually an exponent, raising your total XP/sec ^+0.01 per dragon, but it's displayed as a multiplier that increases as your base XP/sec increases)" +
-          "<li>Claim multiple cards at once (1.1^(dragons defeated)) (Note: This multiplier does not affect card draws from keys)" +
+          "<li>Claim multiple cards instead of one (1.1^(dragons defeated)) (Note: This multiplier does not affect card draws from keys)" +
           "<li>Multiply gem gain (1.15^(dragons defeated))" +
           "</ul>",
           "If you're experiencing lag, try turning on the \"Optimize dragon fighting\" setting, it may help a little!",
@@ -4275,7 +4275,7 @@ function updateDragonRewardsUI() {
   el.innerHTML = `
     <h3>You have defeated <b>${dragonsDefeated}</b> dragons, which:</h3><br>
     Multiplies your XP gain by <b>x${xpMult.toFixed(2)}</b><br>
-    Allows you to claim <b>${cardsExpected}</b> cards at once<br>
+    Allows you to claim <b>${cardsExpected}</b> cards instead of one<br>
     Multiplies gem gain by <b>x${formatNumber(gemMultDisplay)}</b>
   `;
   updateCardCooldownUI();
