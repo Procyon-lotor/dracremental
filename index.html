@@ -5589,7 +5589,7 @@ const miningUpgrades = [
     desc: "Increase key chance",
     max: 15,
     effect: x => 0.005 + 0.001 * x, // 0.5% + 0.1x%
-    cost: x => Math.floor(250 * Math.pow(1.8, x)),
+    cost: x => Math.floor(2500 * Math.pow(1.8, x)),
     format: v => `${(v * 100).toFixed(1)}% key chance`
   },
   {
@@ -5598,7 +5598,7 @@ const miningUpgrades = [
     desc: "Lower log base for gem multiplier",
     max: 15,
     effect: x => Math.max(2, 10 - 0.5 * x),
-    cost: x => Math.floor(1000 * Math.pow(2, x)),
+    cost: x => Math.floor(10000 * Math.pow(2, x)),
     format: v => `${v.toFixed(1)}`
   }
 ];
