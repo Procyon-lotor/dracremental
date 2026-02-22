@@ -3702,6 +3702,65 @@ function closeModal(e) {
   }
 }
 
+function isCardModalOpen() {
+  const modal = document.getElementById("modal");
+  return !!modal && modal.style.display === "flex";
+}
+
+function getOwnedCardIdsSorted() {
+  // ownedCards keys are strings -> convert to numbers and sort
+  return Object.keys(ownedCards)
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+}
+
+function openOwnedCardModalById(cardId) {
+  const card = ownedCards[cardId];
+  if (!card) return;
+  selectedModalCard = card;
+
+  const modal = document.getElementById("modal");
+  if (modal) modal.style.display = "flex";
+
+  updateModal();
+}
+
+function stepCardModal(direction) {
+  // direction: -1 for left, +1 for right
+  if (!selectedModalCard) return;
+
+  const ids = getOwnedCardIdsSorted();
+  if (ids.length <= 1) return;
+
+  const currentId = Number(selectedModalCard.id);
+  let idx = ids.indexOf(currentId);
+
+  // Fallback if something weird happened
+  if (idx === -1) idx = 0;
+
+  idx = (idx + direction + ids.length) % ids.length;
+  openOwnedCardModalById(ids[idx]);
+}
+
+// Arrow key navigation while card modal is open
+document.addEventListener("keydown", (e) => {
+  if (!isCardModalOpen()) return;
+
+  // Don't hijack arrows while typing in inputs/textareas
+  const t = e.target;
+  const tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
+  if (tag === "input" || tag === "textarea" || (t && t.isContentEditable)) return;
+
+  if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    stepCardModal(-1);
+  } else if (e.key === "ArrowRight") {
+    e.preventDefault();
+    stepCardModal(1);
+  }
+}, true);
+
 let selectedWeapon = null;
 let battleEnded = false;
 let interactionLocked = false;
@@ -5520,7 +5579,7 @@ const miningUpgrades = [
     name: "Sharper Drill",
     desc: "Increase mining speed",
     max: Infinity,
-    effect: x => Math.pow(1.4, x),
+    effect: x => Math.pow(1.44, x),
     cost: x => Math.floor(100 * Math.pow(1.2, x)),
     format: v => `${formatNumber(v.toFixed(2))}× speed`
   },
