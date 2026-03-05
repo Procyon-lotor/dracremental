@@ -1564,6 +1564,14 @@ body { padding-bottom: 50px; }
 
       <div id="storedDrawsText" style="font-size:16px;color:#eee;margin-top:16px;"></div>
       <div id="storedDrawsCapText" style="font-size:12px;color:#aaa;margin-top:2px;"></div>
+      <div id="earlyDrawNotice" style="
+  margin-top:16px;
+  font-size:14px;
+  color:#3fbf3f;
+  text-align:center;
+">
+The first 8 card draws can be obtained faster than usual, but the cooldown time doubles with each draw until the normal base time of one hour is reached.
+</div>
     </div>    
 
     <button id="draw1KeyBtn" onclick="drawCardsWithKeys(1)">
@@ -2092,6 +2100,7 @@ let dragonHP = 0;
 let dragonDamage = 0;
 let dragonsDefeated = 0;
 let cardsExpected = 0;
+let earlyDrawNoticeHidden = false;
 
 // --- Tab unlocks + one-time glow ---
 let miningTabUnlocked = false;
@@ -2111,6 +2120,19 @@ let keysOwned = 0;
 // ---- MINING INIT GUARD ----
 let miningClaimedCounts = [];   // declared early so it's safe to reference
 let miningInitialized = false;  // becomes true once ORES exists and counts are sized
+
+// Early game faster cooldowns (first 8 draws)
+const EARLY_DRAW_MULTIPLIERS = [
+  1/512,
+  1/256,
+  1/128,
+  1/64,
+  1/32,
+  1/16,
+  1/8,
+  1/4,
+  1/2,
+];
 
 const achievements = [
   { id: 1,  name: "Card Collector",  desc: "Draw 5 total cards",               claimed: false, notified: false, check: () => stats.totalCardsOpened >= 5 },
@@ -2386,6 +2408,7 @@ dragonTabGlowDismissed,
 
 hasSeenIntroModal,
 storedCardDraws,
+earlyDrawNoticeHidden,
   };
 }
 
@@ -2484,6 +2507,7 @@ dragonTabGlowDismissed = !!s.dragonTabGlowDismissed;
 
 hasSeenIntroModal = !!s.hasSeenIntroModal;
 storedCardDraws = s.storedCardDraws ?? storedCardDraws;
+earlyDrawNoticeHidden = s.earlyDrawNoticeHidden ?? earlyDrawNoticeHidden;
 
 // reflect loaded name into the input + labels
 const nameInput = document.getElementById("playerNameInput");
@@ -2604,6 +2628,7 @@ updateCardCooldownUI();
 
   applyAllSettings();
   openIntroModalIfNeeded();
+  updateEarlyDrawNotice();
 }
 
 function hardReset() {
@@ -2889,7 +2914,8 @@ function getHelpContentForTab(tabName) {
           "You can also level up each card individually by collecting duplicates of it. Once you have enough duplicates, you can level the card up to increase its XP production. Each level-up provides a certain amount of Spicy Peppers.",
           "Card draws are awarded on an interval that decreases as your player level goes up. This interval starts out pretty slow, but it gets slightly faster each time your player level goes up! Also, you can store a few card draws and then claim them all when you return, so don't worry about missing draws while you're away :3 (Note: This seems to only work when the device is on and in a background tab/window, I'm really sorry about this)",
           "You can click on a card to view its modal, which displays a lot of useful information about the card. You can also use left and right arrows to scroll through the card modals!",
-          "<b><span style='color:#00efef;'>Note: Mining will unlock at Player Level 15</span></b>" 
+          "<b><span style='color:#00efef;'>Note: Mining will unlock at Player Level 15</span></b>",
+          "<b><span style='color:#efef00;'>Thank you to players Nedyarg1100 and Nekosity for suggesting a major speed up to the first few card draws :)</span></b>" 
         ]
       };
 
@@ -3101,6 +3127,7 @@ if (storedCardDraws < maxStoredCardDraws() && cardCooldownRemaining <= 0) {
 
 saveGame(false);
 updateCardCooldownUI();
+updateEarlyDrawNotice();
 }
 
 function startCardCooldownLoop() {
@@ -3185,8 +3212,45 @@ function drawCardsWithKeys(n) {
   updateKeyDrawButtons();
 }
 
+const earlyText = document.getElementById("earlyDrawNotice");
+
+if (earlyText) {
+  if (stats.totalCardsOpened >= 9) {
+    earlyText.style.display = "remove";
+  } else {
+    earlyText.style.display = "block";
+  }
+}
+
+function updateEarlyDrawNotice() {
+  const earlyText = document.getElementById("earlyDrawNotice");
+  if (!earlyText) return;
+
+  if (stats.totalCardsOpened >= 9) {
+    earlyDrawNoticeHidden = true;
+  }
+
+  if (earlyDrawNoticeHidden) {
+    earlyText.style.display = "none";
+  } else {
+    earlyText.style.display = "block";
+  }
+}
+
+function getCurrentCardCooldown() {
+  const BASE_TIME = 3600; // seconds
+
+  const drawIndex = stats.totalCardsOpened;
+
+  if (drawIndex < 9) {
+    return BASE_TIME * EARLY_DRAW_MULTIPLIERS[drawIndex];
+  }
+
+  return BASE_TIME;
+}
+
 function getCardCooldownDuration() {
-  const base = 3600; // seconds
+  const base = getCurrentCardCooldown();
   return base * Math.pow(0.95, playerLevel - 1);
 }
 
